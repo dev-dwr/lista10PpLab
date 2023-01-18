@@ -31,7 +31,7 @@ public class Main {
         }
 
         for (int i = 0; i < numberOfClients; i++) {
-            int balance = random.nextInt(500_000) + 1;
+            int balance = random.nextInt(5000) + 1;
             clientsAccountDetails.put(i, balance);
         }
 
@@ -43,7 +43,7 @@ public class Main {
         executor.shutdown();
 
         try {
-//            executor.awaitTermination(timeInSeconds, TimeUnit.SECONDS);
+            executor.awaitTermination(timeInSeconds, TimeUnit.SECONDS);
             Thread.sleep(timeInSeconds * 1000L);
         } catch (InterruptedException e) {
             System.out.println("Exception here" + e.getMessage());
@@ -60,8 +60,6 @@ public class Main {
     static class Client implements Runnable {
         private int clientId;
         private final Map<Integer, Consumer<Integer>> paymentOperations = new ConcurrentHashMap<>();
-
-        private Semaphore mutex = new Semaphore(1);
 
         public Client(int clientId) {
             this.clientId = clientId;
@@ -80,35 +78,29 @@ public class Main {
 
         private void deposit(int clientId) {
             int depositedMoney = random.nextInt(500);
-            acquireMutex();
             int balance = clientsAccountDetails.get(clientId);
             clientsAccountDetails.put(clientId, balance + depositedMoney);
-            mutex.release();
         }
 
         private void withdraw(int clientId) {
-            int withdrawMoney = random.nextInt(10_000);
+            int withdrawMoney = random.nextInt(1000);
             int balance = clientsAccountDetails.get(clientId);
-            acquireMutex();
             if (withdrawMoney > balance) {
                 System.out.println("Not enough money to withdraw for client of id: " + clientId);
-                mutex.release();
                 Thread.currentThread().interrupt();
                 return;
             }
             clientsAccountDetails.put(clientId, balance - withdrawMoney);
-            mutex.release();
         }
 
         private void transfer(int clientId) {
-            int transferMoney = random.nextInt(5_000);
+            int transferMoney = random.nextInt(1000);
             int moneyRecipientId = random.nextInt(numberOfClients);
             if (!clientsAccountDetails.containsKey(moneyRecipientId)) {
                 System.out.println("recipient of id: " + moneyRecipientId + " does not exist");
                 Thread.currentThread().interrupt();
             }
 
-            acquireMutex();
             int balanceOfCurrentClient = clientsAccountDetails.get(clientId);
             int balanceOfRecipient = clientsAccountDetails.get(moneyRecipientId);
             if (transferMoney > balanceOfCurrentClient) {
@@ -118,15 +110,7 @@ public class Main {
             }
             clientsAccountDetails.put(clientId, balanceOfCurrentClient - transferMoney);
             clientsAccountDetails.put(moneyRecipientId, balanceOfRecipient + transferMoney);
-            mutex.release();
         }
 
-        private void acquireMutex() {
-            try {
-                mutex.acquire();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
     }
 }
