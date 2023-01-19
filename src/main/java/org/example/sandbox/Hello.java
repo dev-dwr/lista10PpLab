@@ -1,4 +1,4 @@
-package org.example.ex2;
+package org.example.sandbox;
 
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;

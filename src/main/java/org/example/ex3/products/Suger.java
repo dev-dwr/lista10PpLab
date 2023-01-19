@@ -14,4 +14,11 @@ public class Suger {
     public void setAmountInKg(int amountInKg) {
         this.amountInKg = amountInKg;
     }
+
+    @Override
+    public String toString() {
+        return "Suger{" +
+                "amountInKg=" + amountInKg +
+                '}';
+    }
 }

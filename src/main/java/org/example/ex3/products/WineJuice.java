@@ -1,9 +1,9 @@
 package org.example.ex3.products;
 
-public class Water {
+public class WineJuice {
     private int liters;
 
-    public Water(int liters) {
+    public WineJuice(int liters) {
         this.liters = liters;
     }
 
@@ -17,7 +17,7 @@ public class Water {
 
     @Override
     public String toString() {
-        return "Water{" +
+        return "WineJuice{" +
                 "liters=" + liters +
                 '}';
     }

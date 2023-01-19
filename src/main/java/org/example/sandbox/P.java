@@ -1,4 +1,4 @@
-package org.example.ex2;
+package org.example.sandbox;
 
 public class P {
     private String text;

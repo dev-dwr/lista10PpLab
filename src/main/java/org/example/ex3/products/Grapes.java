@@ -14,4 +14,11 @@ public class Grapes {
     public void setAmountInKg(int amountInKg) {
         this.amountInKg = amountInKg;
     }
+
+    @Override
+    public String toString() {
+        return "Grapes{" +
+                "amountInKg=" + amountInKg +
+                '}';
+    }
 }
