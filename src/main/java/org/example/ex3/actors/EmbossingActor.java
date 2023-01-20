@@ -20,7 +20,6 @@ public class EmbossingActor extends AbstractBehavior<EmbossingActor.EmbossingCom
             this.text = text;
         }
 
-
     }
 
     public static class EmbossingStorage implements EmbossingCommand{
@@ -40,7 +39,7 @@ public class EmbossingActor extends AbstractBehavior<EmbossingActor.EmbossingCom
         }
     }
 
-    private StorageActor.Storage currentStorage;
+
     private EmbossingActor(ActorContext<EmbossingCommand> context, ActorRef<StorageActor.StorageCommand> sharedResource) {
         super(context);
         this.sharedResource = sharedResource;
@@ -52,14 +51,13 @@ public class EmbossingActor extends AbstractBehavior<EmbossingActor.EmbossingCom
     private int slots = 1;
 
     private int requiredGrapesInKg = 15;
-
-    private WineJuice product = new WineJuice(10);
+    private StorageActor.Storage currentStorage;
 
     @Override
     public Receive<EmbossingCommand> createReceive() {
         return newReceiveBuilder()
-                .onMessage(EmbossingMessage.class, this::onStartMessage)
-                .onMessage(EmbossingStorage.class, this::onGetState)
+                .onMessage(EmbossingMessage.class, this::onAskStorage)
+                .onMessage(EmbossingStorage.class, this::onEmbosse)
                 .build();
     }
 
@@ -67,32 +65,24 @@ public class EmbossingActor extends AbstractBehavior<EmbossingActor.EmbossingCom
     private final ActorRef<StorageActor.StorageCommand> storage = getContext()
             .spawn(StorageActor.behavior(), "storageActor");
 
-    private Behavior<EmbossingCommand> onStartMessage(EmbossingMessage message) {
-//        checkRequiredGrapesAndSlots(receivedStorage);
-//        System.out.println("Im here");
-//        this.setSlots(0);
-//
-//        int currentGrapes = receivedStorage.getGrapesKg().getAmountInKg();
-//        Grapes updatedGrapes = new Grapes(currentGrapes - requiredGrapesInKg);
-//        receivedStorage.setGrapesKg(updatedGrapes);
-//        receivedStorage.setWineJuice(product);
-//
-//        try {
-//            Thread.sleep(12 * 1000);
-//        }catch (InterruptedException e){}
-//        this.setSlots(1);
-//
-//        sharedResource.tell(receivedStorage);
-//        currentStorage.setWineJuice(new WineJuice(10));
+    private final ActorRef<FermentationActor.FermentationCommand> fermentation = getContext()
+            .spawn(FermentationActor.behavior(storage), "fermentationActor");
+
+    private Behavior<EmbossingCommand> onAskStorage(EmbossingMessage message) {
         storage.tell(new StorageActor.GetState(getContext().getSelf()));
         return this;
     }
 
-    private Behavior<EmbossingCommand> onGetState(EmbossingStorage message){
+    private Behavior<EmbossingCommand> onEmbosse(EmbossingStorage message){
+        //update storage
         currentStorage = message.getCurrentStorage();
         currentStorage.setGrapesKg(new Grapes(currentStorage.getGrapesKg().getAmountInKg() - 15));
-        currentStorage.setWineJuice(new WineJuice(10));
         storage.tell(currentStorage);
+
+
+        //move to fermentation state
+        FermentationActor.EmbossingProduct product = new FermentationActor.EmbossingProduct(new WineJuice(10));
+        fermentation.tell(product);
         return this;
     }
 

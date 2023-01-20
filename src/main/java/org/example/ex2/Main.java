@@ -31,7 +31,7 @@ public class Main {
         }
 
         for (int i = 0; i < numberOfClients; i++) {
-            int balance = random.nextInt(5000) + 1;
+            int balance = random.nextInt(5_000) + 1;
             clientsAccountDetails.put(i, balance);
         }
 
@@ -41,10 +41,10 @@ public class Main {
             executor.execute(client);
         }
         executor.shutdown();
-
         try {
-            executor.awaitTermination(timeInSeconds, TimeUnit.SECONDS);
-            Thread.sleep(timeInSeconds * 1000L);
+            if(!executor.awaitTermination(timeInSeconds, TimeUnit.SECONDS)){
+                executor.shutdownNow();
+            }
         } catch (InterruptedException e) {
             System.out.println("Exception here" + e.getMessage());
         }
@@ -83,33 +83,36 @@ public class Main {
         }
 
         private void withdraw(int clientId) {
-            int withdrawMoney = random.nextInt(1000);
+            int withdrawMoney = random.nextInt(1500);
             int balance = clientsAccountDetails.get(clientId);
             if (withdrawMoney > balance) {
                 System.out.println("Not enough money to withdraw for client of id: " + clientId);
-                Thread.currentThread().interrupt();
                 return;
             }
             clientsAccountDetails.put(clientId, balance - withdrawMoney);
+            System.out.println("Withdraw of " + clientId + " succeeded money taken: " + withdrawMoney);
         }
 
         private void transfer(int clientId) {
             int transferMoney = random.nextInt(1000);
             int moneyRecipientId = random.nextInt(numberOfClients);
+            while(moneyRecipientId == clientId){
+                moneyRecipientId = random.nextInt(numberOfClients);
+            }
             if (!clientsAccountDetails.containsKey(moneyRecipientId)) {
                 System.out.println("recipient of id: " + moneyRecipientId + " does not exist");
-                Thread.currentThread().interrupt();
+                return;
             }
 
             int balanceOfCurrentClient = clientsAccountDetails.get(clientId);
             int balanceOfRecipient = clientsAccountDetails.get(moneyRecipientId);
             if (transferMoney > balanceOfCurrentClient) {
-                System.out.println("Not enough money to transfer for client of id: " + clientId);
-                Thread.currentThread().interrupt();
+                System.out.println("Not enough money to transfer for client from id: " + clientId + " to recipient " + moneyRecipientId);
                 return;
             }
             clientsAccountDetails.put(clientId, balanceOfCurrentClient - transferMoney);
             clientsAccountDetails.put(moneyRecipientId, balanceOfRecipient + transferMoney);
+            System.out.println("Transfer from " + clientId + " to client of id " + moneyRecipientId + " succedded transfered: " + transferMoney);
         }
 
     }

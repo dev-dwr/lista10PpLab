@@ -94,10 +94,9 @@ public class StorageActor extends AbstractBehavior<StorageActor.StorageCommand> 
         }
     }
 
-    private StorageActor.Storage currentStorage;
+    private StorageActor.Storage currentStorage = new StorageActor.Storage(water, grapes, suger, bottels);;
     private StorageActor(ActorContext<StorageCommand> context) {
         super(context);
-        currentStorage = new StorageActor.Storage(water, grapes, suger, bottels);
     }
 
 
@@ -106,6 +105,7 @@ public class StorageActor extends AbstractBehavior<StorageActor.StorageCommand> 
         return newReceiveBuilder()
                 .onMessage(GetState.class, this::getState)
                 .onMessage(Storage.class, this::setStorage)
+                .onMessage(GetStateFermentation.class, this::getStateFermentation)
                 .build();
     }
 
@@ -123,12 +123,32 @@ public class StorageActor extends AbstractBehavior<StorageActor.StorageCommand> 
     }
 
 
+    public static class GetStateFermentation implements StorageCommand {
+        public final ActorRef<FermentationActor.FermentationCommand> replyTo;
+        public Storage storage;
+
+        public GetStateFermentation(ActorRef<FermentationActor.FermentationCommand> replyTo) {
+            this.replyTo = replyTo;
+        }
+
+        public void setStorage(Storage storage) {
+            this.storage = storage;
+        }
+    }
+
 
 
     private Behavior<StorageCommand> getState(GetState state) {
         System.out.println("state get");
         System.out.println("currstorage" + currentStorage.toString());
         state.replyTo.tell(new EmbossingActor.EmbossingStorage("text", currentStorage));
+        return this;
+    }
+
+    private Behavior<StorageCommand> getStateFermentation(GetStateFermentation state) {
+        System.out.println("fermentation");
+        System.out.println("ferstorage" + currentStorage.toString());
+        state.replyTo.tell(new FermentationActor.FermentationMessage("to fermentation", currentStorage));
         return this;
     }
 

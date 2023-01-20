@@ -31,7 +31,9 @@ public class Main {
         executor.shutdown();
 
         try {
-            Thread.sleep(timeInSeconds * 1000L);
+            if(!executor.awaitTermination(timeInSeconds, TimeUnit.SECONDS)){
+                executor.shutdownNow();
+            }
         } catch (InterruptedException e) {
             System.out.println("Exception occurred here");
         }
