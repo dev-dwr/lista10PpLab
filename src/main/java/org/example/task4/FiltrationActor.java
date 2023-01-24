@@ -16,7 +16,8 @@ import java.util.Map;
 import java.util.Random;
 
 public class FiltrationActor extends AbstractBehavior<FiltrationActor.Command> {
-    public interface Command{}
+    public interface Command {
+    }
 
     public static class ProvideUnfilteredWine implements Command {
         private int amount;
@@ -63,28 +64,29 @@ public class FiltrationActor extends AbstractBehavior<FiltrationActor.Command> {
     private List<Integer> slotsFree = new LinkedList<>();
     private boolean resources = true;
     private int speed;
+
     private FiltrationActor(ActorContext<Command> context, ActorRef<StorageActor.Command> storage, ActorRef<FermentationActor.Command> fermentation, int speed) {
         super(context);
         this.speed = speed;
         this.storage = storage;
         getContext().watch(fermentation);
         for (int i = 0; i < slots; i++) {
-           takenSlots.put(i, false);
+            takenSlots.put(i, false);
             slotsFree.add(i);
         }
     }
 
-    private long timeInMilliSeconds =1209600000; //14dni
-    private int time = 1200;
+    private long timeInMilliSeconds = 1209600000; //14dni
+    private int time = 7200;
     private Random random = new Random();
 
     @Override
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
-                .onMessage(FiltrationActor.ProvideUnfilteredWine.class, this::provideUnfilteredWine)
+                .onMessage(ProvideUnfilteredWine.class, this::provideUnfilteredWine)
+                .onMessage(EndOfProcessing.class, this::endOfProcessing)
                 .onMessage(Process.class, off -> Behaviors.stopped())
                 .onSignal(Terminated.class, signal -> endFermentationProcessDueToLackOfResources())
-                .onMessage(EndOfProcessing.class, this::endOfProcessing)
                 .build();
     }
 
@@ -97,18 +99,19 @@ public class FiltrationActor extends AbstractBehavior<FiltrationActor.Command> {
     }
 
     private Behavior<Command> provideUnfilteredWine(ProvideUnfilteredWine wine) {
+        System.out.println("provided unfiltered wine: " + wine.getAmount());
         unfilteredWine += wine.getAmount();
 
-        boolean freeSlotsPresent = takenSlots.values().stream().allMatch(x->x);
+        boolean freeSlotsPresent = takenSlots.values().stream().allMatch(x -> x);
         while (unfilteredWine >= requiredUnfilteredWine && !freeSlotsPresent) {
             unfilteredWine -= requiredUnfilteredWine;
             int randomSlot = random.nextInt(slots);
-            while(takenSlots.get(randomSlot)){
+            while (takenSlots.get(randomSlot)) {
                 randomSlot = random.nextInt(slots);
             }
             takenSlots.put(randomSlot, true);
             slotsFree.remove(randomSlot);
-            getContext().scheduleOnce(Duration.ofMillis(time / speed), getContext().getSelf(), new FiltrationActor.EndOfProcessing(randomSlot));
+            getContext().scheduleOnce(Duration.ofMillis(time/speed), getContext().getSelf(), new FiltrationActor.EndOfProcessing(randomSlot));
         }
 
         if (slotsFree.size() == slots && !resources) {
@@ -124,12 +127,11 @@ public class FiltrationActor extends AbstractBehavior<FiltrationActor.Command> {
 
         if (random.nextInt(100) < failure) {
             System.out.println("Filtration of slot id: " + msg.getSlot() + " has failed");
-        }else{
+        } else {
             System.out.println("Filtration succeeded, produced filtered wine to storage: " + filteredWine + " next step bootling");
             storage.tell(new StorageActor.ProvideFilteredWine(filteredWine));
         }
 
-        // Begin processing again
         getContext().getSelf().tell(new FiltrationActor.ProvideUnfilteredWine(producedFilteredWine));
         return this;
     }

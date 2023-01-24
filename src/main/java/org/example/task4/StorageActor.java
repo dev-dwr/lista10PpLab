@@ -81,7 +81,7 @@ public class StorageActor extends AbstractBehavior<StorageActor.Command> {
     private ActorRef<FiltrationActor.Command> filtrationActor;
 
     private int unfilteredWine;
-    private int speeded = 20;
+    private int speeded = 70;
     private int grapes = 100;
     private int water = 100;
     private int filteredWine = 0;

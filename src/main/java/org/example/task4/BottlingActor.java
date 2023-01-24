@@ -41,7 +41,7 @@ public class BottlingActor extends AbstractBehavior<BottlingActor.Command> {
     private int time5Minutes = 300000;
     private int failure = 5;
     private int createdBottles = 1;
-    private int time = 5000;
+    private int time = 500;
     private int slots = 1;
     private double requiredFilteredWine = 0.75d;
     private ActorRef<StorageActor.Command> storage;
@@ -89,8 +89,10 @@ public class BottlingActor extends AbstractBehavior<BottlingActor.Command> {
 
     private Behavior<Command> provideFilteredWine(ProvideFilteredWine wine) {
 
-        filteredWine += wine.getFilteredWineAmount();
-
+        if(flag){
+            filteredWine += wine.getFilteredWineAmount();
+        }
+        System.out.println("filtered wine bottling process: " + filteredWine);
         if (0 == slots) {
             System.out.println("turning off bottling");
             getContext().getSelf().tell(BottlingActor.Process.OFF);
@@ -102,6 +104,12 @@ public class BottlingActor extends AbstractBehavior<BottlingActor.Command> {
             bottles -= createdBottles;
             getContext().scheduleOnce(Duration.ofMillis(time / speed), getContext().getSelf(), new BottlingActor.EndOfProcess());
         }
+
+//        resources = false;
+//        if (slots == 1 && !resources) {
+//            getContext().getSelf().tell(Process.OFF);
+//            storage.tell(StorageActor.ShutdownProduction.SHUTDOWN);
+//        }
 
         return this;
     }

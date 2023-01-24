@@ -41,8 +41,8 @@ public class EmbossingActor extends AbstractBehavior<EmbossingActor.Command> {
 
     private int receivedGrapes = 0;
     private int slots = 1;
-    private long process12HoursInMilliSeconds = 43200000;
-    private long process12HoursInMilliSeconds2 = 42000;
+//    private long process12HoursInMilliSeconds = 43200000;
+    private long process12HoursInMilliSeconds2 = 7200;
     private boolean occurredAddingGrapesOperation = true;
     private int speed;
 
@@ -88,7 +88,7 @@ public class EmbossingActor extends AbstractBehavior<EmbossingActor.Command> {
     private Behavior<Command> endOfProcessing(EndOfProcessing msg) {
         slots = 1;
         Random random = new Random();
-        int value = random.nextInt(10);
+        int value = random.nextInt(100);
 
         if (failure > value) {
             System.out.println("Embossing error occurred");

@@ -89,7 +89,7 @@ public class FermentationActor extends AbstractBehavior<FermentationActor.Comman
     private Map<Integer, Boolean> takenSlots = new HashMap<>();
     private List<Integer> slotsFree = new LinkedList<>();
 
-    private int time = 1200;
+    private int time = 201600;
 
     private Random random = new Random();
 
