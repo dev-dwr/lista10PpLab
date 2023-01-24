@@ -76,8 +76,10 @@ public class FiltrationActor extends AbstractBehavior<FiltrationActor.Command> {
         }
     }
 
-    private long timeInMilliSeconds = 1209600000; //14dni
-    private int time = 7200;
+//    private long timeInMilliSeconds = 1209600000; //14dni
+    private long timeInMilliSeconds = 7200; //14dni
+    private int time = 432000;
+    ;
     private Random random = new Random();
 
     @Override
@@ -98,6 +100,7 @@ public class FiltrationActor extends AbstractBehavior<FiltrationActor.Command> {
         return this;
     }
 
+
     private Behavior<Command> provideUnfilteredWine(ProvideUnfilteredWine wine) {
         System.out.println("provided unfiltered wine: " + wine.getAmount());
         unfilteredWine += wine.getAmount();
@@ -111,12 +114,15 @@ public class FiltrationActor extends AbstractBehavior<FiltrationActor.Command> {
             }
             takenSlots.put(randomSlot, true);
             slotsFree.remove(randomSlot);
-            getContext().scheduleOnce(Duration.ofMillis(time/speed), getContext().getSelf(), new FiltrationActor.EndOfProcessing(randomSlot));
+
+            getContext().getSelf().tell(new FiltrationActor.EndOfProcessing(randomSlot));
+            getContext().scheduleOnce(Duration.ofMillis(timeInMilliSeconds/speed), getContext().getSelf(), new FiltrationActor.EndOfProcessing(randomSlot));
         }
 
         if (slotsFree.size() == slots && !resources) {
             getContext().getSelf().tell(Process.OFF);
         }
+
         return this;
     }
 
@@ -125,7 +131,7 @@ public class FiltrationActor extends AbstractBehavior<FiltrationActor.Command> {
         System.out.println("Filtration Process has been finished of slot: " + msg.getSlot());
         slotsFree.add(msg.getSlot());
 
-        if (random.nextInt(100) < failure) {
+        if (random.nextInt(100) + 1 < failure) {
             System.out.println("Filtration of slot id: " + msg.getSlot() + " has failed");
         } else {
             System.out.println("Filtration succeeded, produced filtered wine to storage: " + filteredWine + " next step bootling");

@@ -42,7 +42,8 @@ public class EmbossingActor extends AbstractBehavior<EmbossingActor.Command> {
     private int receivedGrapes = 0;
     private int slots = 1;
 //    private long process12HoursInMilliSeconds = 43200000;
-    private long process12HoursInMilliSeconds2 = 7200;
+//    private long process12HoursInMilliSeconds2 = 43200;
+    private long process12HoursInMilliSeconds2 = 42000;
     private boolean occurredAddingGrapesOperation = true;
     private int speed;
 
@@ -79,6 +80,7 @@ public class EmbossingActor extends AbstractBehavior<EmbossingActor.Command> {
         while (slots == 1 && receivedGrapes >= requiredGrapesKg) {
             slots = 0;
             receivedGrapes -= requiredGrapesKg;
+//            getContext().getSelf().tell(new EmbossingActor.EndOfProcessing());
             getContext().scheduleOnce(Duration.ofMillis(process12HoursInMilliSeconds2 / speed), getContext().getSelf(), new EmbossingActor.EndOfProcessing());
         }
 

@@ -80,14 +80,14 @@ public class StorageActor extends AbstractBehavior<StorageActor.Command> {
     private ActorRef<FermentationActor.Command> fermentationActor;
     private ActorRef<FiltrationActor.Command> filtrationActor;
 
-    private int unfilteredWine;
-    private int speeded = 70;
-    private int grapes = 100;
-    private int water = 100;
+    private int unfilteredWine = 0;
+    private int speeded = 20;
+    private int grapes = 50;
+    private int water = 70;
     private int filteredWine = 0;
     private int bottles = 10;
     private int wineJuice = 0;
-    private int sugar = 5;
+    private int sugar = 10;
 
     private StorageActor(ActorContext<Command> context) {
         super(context);
@@ -95,7 +95,6 @@ public class StorageActor extends AbstractBehavior<StorageActor.Command> {
         this.fermentationActor = context.spawn(FermentationActor.create(getContext().getSelf(), embossing, water, sugar, speeded), "fermentationActor");
         this.filtrationActor = context.spawn(FiltrationActor.create(getContext().getSelf(), fermentationActor, speeded), "filtrationActor");
         this.bottlingActor = context.spawn(BottlingActor.create(getContext().getSelf(), filtrationActor, bottles, speeded), "bottlingActor");
-//
         getContext().watch(embossing);
         getContext().watch(filtrationActor);
         getContext().watch(fermentationActor);
@@ -108,10 +107,10 @@ public class StorageActor extends AbstractBehavior<StorageActor.Command> {
                 .onMessage(ProvideFilteredWine.class, this::provideFilteredWine)
                 .onSignal(Terminated.class, this::terminatedProcess)
                 .onMessage(ProvideBottles.class, this::provideBottles)
-                .onMessage(Production.class, this::startProcess)
-                .onMessage(ShutdownProduction.class, shutdown -> onShutdown())
                 .onMessage(ProvideWineJuice.class, this::provideWineJuice)
                 .onMessage(ProvideUnfilteredWine.class, this::provideUnfilteredWine)
+                .onMessage(Production.class, this::startProcess)
+                .onMessage(ShutdownProduction.class, shutdown -> onShutdown())
                 .build();
     }
 

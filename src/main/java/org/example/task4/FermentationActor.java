@@ -78,7 +78,7 @@ public class FermentationActor extends AbstractBehavior<FermentationActor.Comman
     private int speed;
     private int slots = 10;
 
-    private int wineJuice = 0;
+    private int wineJuice;
 
     private int requiredWineJuice = 15;
     private int requiredSugar = 2;
@@ -89,7 +89,8 @@ public class FermentationActor extends AbstractBehavior<FermentationActor.Comman
     private Map<Integer, Boolean> takenSlots = new HashMap<>();
     private List<Integer> slotsFree = new LinkedList<>();
 
-    private int time = 201600;
+//    private long time = 1209600;
+    private long time = 201600;
 
     private Random random = new Random();
 
@@ -178,12 +179,14 @@ public class FermentationActor extends AbstractBehavior<FermentationActor.Comman
 
             takenSlots.put(randomSlot, true);
             slotsFree.remove(randomSlot);
+//            getContext().getSelf().tell(new FermentationActor.EndOfProcessing(randomSlot));
             getContext().scheduleOnce(Duration.ofMillis(time / speed), getContext().getSelf(), new FermentationActor.EndOfProcessing(randomSlot));
         }
 
-        if (slotsFree.size() == slots && !resources) {
-            getContext().getSelf().tell(Process.OFF);
-        }
+
+//        if (slotsFree.size() == slots) {
+//            getContext().getSelf().tell(Process.OFF);
+//        }
     }
 
     private Behavior<Command> stopEmbossingActor() {
